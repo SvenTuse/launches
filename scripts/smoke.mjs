@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+const base = process.env.TEST_BASE_URL || 'http://localhost:3000';
+const env = Object.fromEntries((await fs.readFile('.env.local', 'utf8')).split(/\r?\n/).filter(line => line.includes('=')).map(line => { const index = line.indexOf('='); return [line.slice(0, index), line.slice(index + 1)]; }));
+const id = 'http-test-' + Date.now();
+const root = path.resolve('case-study projects', id);
+let checks = 0;
+const check = (actual, expected, name) => { assert.equal(actual, expected, name); checks++; console.log('PASS ' + name); };
+const route = (p) => `/api/file?${new URLSearchParams({ project: id, path: p })}`;
+let cookie = '';
+async function request(url, options = {}) { return fetch(base + url, { ...options, headers: { Origin: base, ...(cookie ? { Cookie: cookie } : {}), ...options.headers } }); }
+await fs.mkdir(root);
+try {
+  check((await request('/api/catalog')).status, 401, 'Catalog requires login');
+  check((await request(route('sample.md'))).status, 401, 'Files require login');
+  const wrong = await request('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'admin', password: 'wrong' }) });
+  check(wrong.status, 401, 'Wrong password rejected');
+  const login = await request('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: env.ADMIN_USERNAME, password: env.ADMIN_PASSWORD }) });
+  check(login.status, 200, 'Admin sign in');
+  const setCookie = login.headers.get('set-cookie'); assert.ok(setCookie.includes('HttpOnly')); assert.ok(setCookie.includes('SameSite=strict')); checks += 2;
+  cookie = setCookie.split(';')[0];
+  check((await request('/api/catalog')).status, 200, 'Authorized catalog');
+  const put = (body, headers = {}) => request('/api/file', { method: 'PUT', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ project: id, ...body }) });
+  check((await put({ path: 'sample.md', content: '# Original', create: true })).status, 200, 'Create Markdown');
+  const read = await request(route('sample.md')); const rev = read.headers.get('x-revision');
+  check(await read.text(), '# Original', 'Read created Markdown');
+  check((await put({ path: 'sample.md', content: '# Updated', revision: rev })).status, 200, 'Save edit');
+  check((await put({ path: 'sample.md', content: '# Stale', revision: rev })).status, 409, 'Stale save rejected');
+  check((await put({ path: 'sample.md', content: 'duplicate', create: true })).status, 409, 'Duplicate rejected');
+  check((await put({ path: 'invalid.json', content: '{oops', create: true })).status, 400, 'Invalid JSON rejected');
+  check((await put({ path: '../escape.md', content: 'escape', create: true })).status, 400, 'Traversal write rejected');
+  check((await request(route('../../.env.local'))).status, 400, 'Secret traversal rejected');
+  check((await put({ path: 'csrf.md', content: 'bad', create: true }, { Origin: 'https://other-site.example' })).status, 403, 'Cross-origin writes rejected');
+  const form = new FormData(); form.set('project', id); form.set('path', 'uploads/example.txt'); form.set('file', new File(['Uploaded content'], 'example.txt', { type: 'text/plain' }));
+  check((await request('/api/file', { method: 'POST', body: form })).status, 200, 'Multipart upload');
+  check(await (await request(route('uploads/example.txt'))).text(), 'Uploaded content', 'Upload persists');
+  const video = new FormData(); video.set('project', id); video.set('path', 'range.mp4'); video.set('file', new File([new Uint8Array([0,1,2,3,4,5])], 'range.mp4', { type: 'video/mp4' }));
+  check((await request('/api/file', { method: 'POST', body: video })).status, 200, 'Media upload');
+  const partial = await request(route('range.mp4'), { headers: { Range: 'bytes=2-4' } });
+  check(partial.status, 206, 'Media range response'); check(partial.headers.get('content-range'), 'bytes 2-4/6', 'Correct media range');
+  check((await request('/api/auth', { method: 'DELETE' })).status, 200, 'Sign out');
+  cookie = ''; check((await request('/api/catalog')).status, 401, 'Access denied after sign out');
+  console.log(`${checks} checks passed.`);
+} finally {
+  assert.equal(path.dirname(root), path.resolve('case-study projects'));
+  await fs.rm(root, { recursive: true, force: true });
+  const history = path.resolve('.local-history', id); assert.equal(path.dirname(history), path.resolve('.local-history'));
+  await fs.rm(history, { recursive: true, force: true });
+}

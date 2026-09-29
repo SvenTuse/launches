@@ -1,0 +1,17 @@
+{
+  "Name": "Pink Sheets",
+  "Ticker": "PINK",
+  "Contract (meaning CA)": "0xbc9cc4b93a08b2dfba87067a9c53e713db3314ce",
+  "X": "https://x.com/pinksheets_fi",
+  "Website": "https://pinksheets.fi/",
+  "ATH": "$5.16M",
+  "Lifetime Volume": "$9.64M",
+  "gmgn link": "https://gmgn.ai/robinhood/token/0xbc9cc4b93a08b2dfba87067a9c53e713db3314ce",
+  "Research date": "2026-09-27",
+  "Data provenance": {
+    "ATH": "Supplied capitalization ATH from original project-overview.md; not independently reconciled. CoinGecko reports price ATH $0.0005156 and 1B supply, implying approximately $515,600 on that supply basis; chart snapshots differ.",
+    "Lifetime Volume": "Supplied cumulative token trading volume from original project-overview.md; source and capture time not provided; not independently verified.",
+    "Website analysis": "Live browser access failed on HTTPS bare/www and HTTP; indexed homepage content and supplied social screenshots analyzed with explicit verification limits."
+  }
+}
+

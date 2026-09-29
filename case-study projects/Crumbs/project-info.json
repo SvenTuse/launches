@@ -1,0 +1,17 @@
+{
+  "Name": "Crumbs",
+  "Ticker": "CRUMBS",
+  "Contract (meaning CA)": "0x80baa4b3bfac6f4978700df824b1b3d98e889136",
+  "X": "https://x.com/crumbsfamily",
+  "Website": "https://crumbs.family/",
+  "ATH": "$7.97M",
+  "Lifetime Volume": "$20.06M",
+  "gmgn link": "https://gmgn.ai/robinhood/token/0x80baa4b3bfac6f4978700df824b1b3d98e889136",
+  "Research date": "2026-09-27",
+  "Data provenance": {
+    "ATH": "Reported capitalization ATH supplied in original project-overview.md; not independently reconciled. OpenSea, RootData and CryptoRank show conflicting price ATH values.",
+    "Lifetime Volume": "Reported cumulative trading volume supplied in original project-overview.md; source and capture time not provided; not independently verified.",
+    "Website analysis": "Live bare/www homepages and /en/connect returned Cloudflare 521. Indexed homepage, onboarding, Terms and Privacy were recovered; social creatives inspected; live execution and full rendering unverified.",
+    "Social metrics": "Historical supplied screenshots; rounded counters expanded approximately; duplicate screenshots/posts excluded within each corpus; cross-folder overlap disclosed."
+  }
+}

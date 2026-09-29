@@ -1,0 +1,5 @@
+# Why DEED Sent
+
+DEED made the Robinhood Chain RWA and ETF-like yield narrative immediately understandable by promising a share of apartment rent without landlord work, using a property-document name and a monthly public ledger called The Roll to give the idea a concrete identity.
+Its two apartment videos accumulated approximately 1.16 million captured views, while six disclosed paid partnerships, Telegram trading calls and 100 displayed screener boosts extended distribution with a consistent cream building mark, forest-green backgrounds and bold cream typography shared across the website and social creatives; platform-served X ads remained unverified.
+That visibility plausibly fueled speculation on the claimed accumulation of net rent in vault shares and helped support DEED’s reported $4.28 million peak capitalization and $9.29 million lifetime turnover, although the trading token’s enforceable rental-income rights and creator profit were not established and subsequent captures showed a severe collapse.

@@ -1,0 +1,4 @@
+- Effectively conduct research on the crypto market for new memecoins on Robinhood and Solana (most likely, Robinhood will be the initial platform).
+- Find viral projects.
+- Analyze why they went viral, why they attracted attention, what their product is, how they were promoted on X and Twitter, and so on.
+- Do something similar: something equally creative, replicate someone else’s success, and make money.
