@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { safeRelative, readFile, writeFile, revision, catalog, StorageError } from '../lib/storage';
+import { safeRelative, readFile, writeFile, revision, catalog, StorageError, writable } from '../lib/storage';
 import { relativeLink, overviewInfo } from '../lib/content';
 
 test('paths cannot escape the case study or expose hidden and system files', () => {
@@ -18,6 +18,26 @@ test('project metadata accepts plain and formatted overview files', () => {
   assert.equal(plain.Name, 'Crumbs'); assert.equal(plain.X, 'https://x.com/crumbsfamily');
   const formatted = overviewInfo('- **Name:** Deed Estate.\n- **Ticker:** DEED.\n- **Website:** [deed.estate](https://deed.estate/).\n- **ATH capitalization:** **$4.28M — reported** in the original overview');
   assert.equal(formatted.Ticker, 'DEED'); assert.equal(formatted.Website, 'https://deed.estate/'); assert.equal(formatted.ATH, '$4.28M');
+});
+
+test('a connected Vercel Blob store is writable with OIDC credentials', () => {
+  const names = ['STORAGE_DRIVER', 'BLOB_READ_WRITE_TOKEN', 'BLOB_STORE_ID', 'VERCEL_OIDC_TOKEN'] as const;
+  const original = Object.fromEntries(names.map(name => [name, process.env[name]]));
+  try {
+    process.env.STORAGE_DRIVER = 'blob';
+    delete process.env.BLOB_READ_WRITE_TOKEN;
+    delete process.env.BLOB_STORE_ID;
+    delete process.env.VERCEL_OIDC_TOKEN;
+    assert.equal(writable(), false);
+    process.env.BLOB_STORE_ID = 'store_test';
+    process.env.VERCEL_OIDC_TOKEN = 'oidc_test';
+    assert.equal(writable(), true);
+  } finally {
+    for (const name of names) {
+      if (original[name] === undefined) delete process.env[name];
+      else process.env[name] = original[name];
+    }
+  }
 });
 test('local writes persist, reject duplicates and concurrent stale changes, and back up originals', async () => {
   process.env.STORAGE_DRIVER = 'local'; delete process.env.VERCEL;

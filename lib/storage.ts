@@ -10,7 +10,8 @@ const CASES = path.join(ROOT, 'case-study projects');
 const PREFIX = 'kai-library/';
 export const MAX_UPLOAD = 4 * 1024 * 1024;
 export const driver = () => process.env.STORAGE_DRIVER === 'blob' || !!process.env.VERCEL ? 'blob' : 'local';
-export const writable = () => driver() === 'local' || !!process.env.BLOB_READ_WRITE_TOKEN;
+const blobConfigured = () => !!process.env.BLOB_READ_WRITE_TOKEN || !!(process.env.BLOB_STORE_ID && process.env.VERCEL_OIDC_TOKEN);
+export const writable = () => driver() === 'local' || blobConfigured();
 export class StorageError extends Error { constructor(message: string, public status = 400) { super(message); } }
 export function safeRelative(value: string) {
   if (typeof value !== 'string' || !value || value.length > 500 || value.includes('\\') || /[\x00-\x1f<>:"|?*]/.test(value) || value.split('/').some(p => !p || p === '.' || p === '..' || p.startsWith('.') || /[. ]$/.test(p) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i.test(p))) throw new StorageError('Invalid path');
@@ -40,7 +41,7 @@ const blobKey = (id: string, p: string) => `${PREFIX}${encodeURIComponent(id)}/$
 export const revision = (buffer: Uint8Array) => createHash('sha256').update(buffer).digest('hex');
 export async function readFile(id: string, relative: string): Promise<Buffer> {
   const local = await localPath(id, relative);
-  if (driver() === 'blob' && process.env.BLOB_READ_WRITE_TOKEN) {
+  if (driver() === 'blob' && blobConfigured()) {
     const result = await get(blobKey(id, relative), { access: 'private', useCache: false });
     if (result?.statusCode === 200) return Buffer.from(await new Response(result.stream).arrayBuffer());
   }
@@ -60,7 +61,7 @@ export async function catalog(): Promise<Catalog> {
   const folders = (await fs.readdir(CASES, { withFileTypes: true })).filter(e => e.isDirectory() && !e.isSymbolicLink() && !e.name.startsWith('.')).map(e => e.name);
   if (await fs.stat(path.join(ROOT, 'how we do it')).catch(() => null)) folders.push('_guide');
   const overlays = new Map<string, FileEntry[]>();
-  if (driver() === 'blob' && process.env.BLOB_READ_WRITE_TOKEN) {
+  if (driver() === 'blob' && blobConfigured()) {
     let cursor: string | undefined;
     do {
       const result = await list({ prefix: PREFIX, cursor, limit: 1000 });
